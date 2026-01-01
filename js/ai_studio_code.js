@@ -1,130 +1,217 @@
 /* 
-   CashFlowJS AI Logic Extension 
-   將此代碼加入到主要 JS 檔案的末尾，或者在初始化遊戲時載入。
+   CashFlowJS AI Logic Extension (Fixed Version)
+   Targeting specific IDs found in index.js logic.
 */
 
-// 用來標記玩家是否為 AI
-var playerIsAI = [false, false, false, false, false, false];
+var AILogic = {
+    aiPlayers: [false, false, false, false, false, false],
+    checkInterval: null,
 
-// 攔截並擴展遊戲的開始函數 (假設原始函數名為 startGame 或類似名稱)
-// 請根據實際代碼調整 hook 的位置。這裡提供一個通用的注入方式。
-
-// 1. 初始化 AI 設定
-function initAISettings() {
-    // 讀取 index.html 中的 checkbox 狀態
-    for (let i = 1; i <= 6; i++) {
-        let checkbox = document.getElementById("player" + i + "ai");
-        if (checkbox && checkbox.checked) {
-            playerIsAI[i-1] = true; 
-            // 如果遊戲物件中有 player 陣列，也可以直接寫入屬性
-            // if (players && players[i-1]) players[i-1].isAI = true;
+    // 初始化：綁定開始按鈕以讀取設定
+    init: function() {
+        var startBtn = document.getElementById("start-game");
+        if (startBtn) {
+            startBtn.addEventListener("click", function() {
+                AILogic.loadSettings();
+                AILogic.startLoop();
+            });
         }
-    }
-    console.log("AI Settings Initialized:", playerIsAI);
-}
+        // 防止重整後丟失設定，也可以在這裡直接讀取(若遊戲已開始)
+        console.log("AI Logic Loaded. Waiting for game start.");
+    },
 
-// 監聽遊戲開始按鈕 (假設按鈕 ID 為 'start-game-btn' 或類似，若無 ID，請手動在 startGame 函數內呼叫 initAISettings)
-// 這裡我們嘗試在 window 載入後自動尋找開始邏輯，或者您可以手動將 initAISettings() 放入 startGame() 函數的第一行。
-document.addEventListener('click', function(e) {
-    if (e.target && (e.target.id === 'start-game' || e.target.innerText === 'START GAME')) {
-        setTimeout(initAISettings, 100);
-    }
-});
-
-// 2. AI 回合邏輯
-// 我們需要監控輪到誰了。假設遊戲有一個全域變數 currentPlayer 或 turn index。
-// 我們使用一個定時器來檢查是否輪到 AI，這是一種非侵入式的實作方法。
-
-setInterval(function() {
-    checkAITurn();
-}, 2000); // 每 2 秒檢查一次
-
-function checkAITurn() {
-    // 判斷當前是否輪到 AI
-    // 注意：需根據原始碼確認 'currentPlayer' 是物件還是索引。
-    // 假設 currentPlayer 是一個全域變數代表當前玩家物件
-    
-    if (typeof currentPlayer === 'undefined') return;
-
-    // 獲取當前玩家索引 (0-5)
-    let pIndex = -1;
-    if (typeof players !== 'undefined') {
-        pIndex = players.indexOf(currentPlayer);
-    }
-
-    if (pIndex !== -1 && playerIsAI[pIndex]) {
-        // 是 AI 的回合
-        runAIBehavior();
-    }
-}
-
-function runAIBehavior() {
-    // 檢測當前遊戲狀態 (是否需要擲骰子，是否在彈出視窗等)
-    
-    // 情境 A: 需要擲骰子 (假設擲骰子按鈕 ID 為 'roll-dice' 或顯示為可見)
-    let rollBtn = document.getElementById('roll-dice'); // 請確認實際 ID
-    // 備用: 可能是 class 
-    if (!rollBtn) rollBtn = document.querySelector('.roll-button'); 
-
-    if (rollBtn && rollBtn.style.display !== 'none' && !rollBtn.disabled) {
-        console.log("AI is rolling the dice...");
-        rollBtn.click();
-        return;
-    }
-
-    // 情境 B: 遇到選擇視窗 (機會卡、市場卡等)
-    // 這裡需要根據 DOM 元素判斷。假設彈窗有按鈕。
-
-    // 1. Small Deal / Big Deal 選擇 (機會)
-    // 假設按鈕文字包含 "Small Deal" 或 "Big Deal"
-    let deals = document.querySelectorAll('button');
-    for (let btn of deals) {
-        if (btn.offsetParent === null) continue; // 跳過隱藏的按鈕
-
-        let text = btn.innerText.toLowerCase();
-        
-        // 選擇 Deal 類型: 優先選 Small Deal (保守策略) 或錢多選 Big
-        if (text.includes("small deal")) {
-            console.log("AI chose Small Deal");
-            btn.click();
-            return;
-        }
-        
-        // 購買決策 (Buy / Pass)
-        if (text === "buy" || text === "pay") {
-            // 簡單 AI: 如果錢夠就買/付
-            // 需獲取當前現金，假設 currentPlayer.cash
-            let cost = 0; 
-            // 嘗試從介面讀取成本，若無法讀取則隨機
-            // 這裡直接點擊購買作為示範
-            console.log("AI is buying/paying.");
-            btn.click();
-            return;
-        }
-
-        if (text === "pass" || text === "end turn" || text === "finish turn") {
-             // 如果沒有 Buy 按鈕可點 (可能錢不夠)，或者已經操作完
-             console.log("AI is ending turn.");
-             btn.click();
-             return;
-        }
-        
-        // 慈善 (Charity)
-        if (text.includes("donate")) {
-            // 隨機決定是否捐款
-            if (Math.random() > 0.5) {
-                btn.click();
-                return;
+    // 讀取勾選框狀態
+    loadSettings: function() {
+        for (let i = 1; i <= 6; i++) {
+            let checkbox = document.getElementById("player" + i + "ai");
+            if (checkbox && checkbox.checked) {
+                AILogic.aiPlayers[i - 1] = true;
             }
         }
-    }
+        console.log("AI Players Configured:", AILogic.aiPlayers);
+    },
 
-    // 情境 C: 處理 OK / Confirm 按鈕 (例如 Doodad 確認)
-    let okBtns = document.querySelectorAll('button');
-    for (let btn of okBtns) {
-        if (btn.innerText.toLowerCase() === 'ok' && btn.offsetParent !== null) {
-             btn.click();
+    // 啟動 AI 監控迴圈
+    startLoop: function() {
+        if (AILogic.checkInterval) clearInterval(AILogic.checkInterval);
+        AILogic.checkInterval = setInterval(AILogic.monitorGame, 2000); // 每 2 秒檢查一次
+    },
+
+    // 核心監控函數
+    monitorGame: function() {
+        // 確保 APP 物件存在且遊戲已初始化
+        if (typeof APP === "undefined" || !APP.players || APP.players.length === 0) return;
+
+        // 取得當前玩家索引 (APP.currentPlayer 是 1-based, 轉為 0-based)
+        var pIndex = APP.currentPlayer - 1;
+        
+        // 檢查是否輪到 AI
+        if (AILogic.aiPlayers[pIndex]) {
+            // 檢查是否處於 "Dream Phase" (選夢想階段)
+            if (APP.dreamPhase && APP.dreamPhase.dreamPhaseOn) {
+                AILogic.handleDreamPhase();
+            } else {
+                // 一般 Rat Race 或 Fast Track
+                AILogic.takeAction(APP.players[pIndex]);
+            }
+        }
+    },
+
+    // 處理夢想選擇階段
+    handleDreamPhase: function() {
+        console.log("AI is choosing a dream...");
+        // 嘗試點擊 "Choose this dream" 按鈕
+        // 在 index.js 中是用 APP.dreamPhase.dreamChoiceBtn() 觸發
+        // 介面上通常會有個按鈕綁定這個函數
+        var dreamBtn = AILogic.findButtonByText("Choose") || AILogic.findButtonByText("Select Dream");
+        
+        if (dreamBtn && AILogic.isVisible(dreamBtn)) {
+            dreamBtn.click();
+        } else {
+            // 如果找不到按鈕 DOM，直接調用函數 (Fallback)
+            if (typeof APP.dreamPhase.dreamChoiceBtn === "function") {
+                APP.dreamPhase.dreamChoiceBtn();
+            }
+        }
+    },
+
+    // 處理遊戲內操作
+    takeAction: function(playerObj) {
+        console.log("AI Action Processing for: " + playerObj.name);
+
+        // 1. 擲骰子 (Roll Dice)
+        if (AILogic.clickIfVisible("roll-btn")) return;
+        if (AILogic.clickIfVisible("roll2-btn")) return; // Charity 或 FastTrack 雙骰
+        if (AILogic.clickIfVisible("ft-roll-btn")) return; // Fast Track
+        if (AILogic.clickIfVisible("ft-roll2-btn")) return;
+
+        // 2. 結束回合 / 確認 (End Turn / Done)
+        // 優先級較低，通常在操作完卡片後
+        // 注意：有些 Done 按鈕在卡片操作完才會出現
+        
+        // 3. 機會卡選擇 (Small / Big Deal)
+        // 簡單策略：如果現金 < 3000 選 Small，否則選 Big (或隨機)
+        if (AILogic.isVisibleById("small-deal-btn") && AILogic.isVisibleById("big-deal-btn")) {
+            if (playerObj.cash < 5000) {
+                document.getElementById("small-deal-btn").click();
+            } else {
+                document.getElementById("big-deal-btn").click();
+            }
+            return;
+        }
+
+        // 4. 購買機會 / 資產 (Buy Opportunity)
+        // 判斷是否買得起
+        var buyBtn = document.getElementById("buy-opp-button"); // Rat Race Buy
+        var ftBuyBtn = document.getElementById("ft-opp-buy-btn"); // Fast Track Buy
+        
+        // Rat Race 購買邏輯
+        if (buyBtn && AILogic.isVisible(buyBtn)) {
+            // 取得成本 (嘗試從 APP.currentDeal 讀取，或直接嘗試點擊)
+            // 簡單 AI：只要買得起就買
+            // 如果按鈕顯示出來，通常代表錢不夠時會隱藏，或者點了會跳貸款
+            // 這裡我們檢查一下 APP.currentDeal
+            var cost = (APP.currentDeal && APP.currentDeal.cost) ? APP.currentDeal.cost : 0;
+            var downPay = (APP.currentDeal && APP.currentDeal.downPayment) ? APP.currentDeal.downPayment : 0;
+            var need = downPay > 0 ? downPay : cost;
+
+            if (playerObj.cash >= need) {
+                console.log("AI buying asset.");
+                buyBtn.click();
+            } else {
+                console.log("AI cannot afford, passing.");
+                AILogic.clickIfVisible("pass-button");
+            }
+            return;
+        }
+
+        // Fast Track 購買邏輯
+        if (ftBuyBtn && AILogic.isVisible(ftBuyBtn)) {
+             ftBuyBtn.click(); // Fast Track 通常錢很多，直接買
              return;
         }
+        
+        // 點擊 Pass (如果沒買)
+        if (AILogic.clickIfVisible("pass-button")) return;
+        if (AILogic.clickIfVisible("ft-pass-btn")) return;
+
+        // 5. 支付 Doodad / 費用
+        if (AILogic.clickIfVisible("doodad-pay-button")) return;
+        if (AILogic.clickIfVisible("ds-pay-button")) return; // Downsize pay
+        if (AILogic.clickIfVisible("pd-pay-button")) return; // Property Damage
+
+        // 6. 慈善 (Charity)
+        var charityBtn = document.getElementById("charity-donate-btn");
+        if (charityBtn && AILogic.isVisible(charityBtn)) {
+            // 50% 機率捐款
+            if (Math.random() > 0.5 && playerObj.cash > (playerObj.totalIncome * 0.1)) {
+                charityBtn.click();
+            } else {
+                AILogic.clickIfVisible("pass-button"); // 或是 pass
+            }
+            return;
+        }
+
+        // 7. 處理彈出視窗的 Done / OK / End Turn
+        // 這些通常是回合最後的清理
+        if (AILogic.clickIfVisible("done-btn")) return;
+        if (AILogic.clickIfVisible("done-repay-btn")) return;
+        if (AILogic.clickIfVisible("end-turn-btn")) return;
+        if (AILogic.clickIfVisible("ft-end-turn-btn")) return;
+        if (AILogic.clickIfVisible("ftic-ok-btn")) return; // Fast track intro OK
+        if (AILogic.clickIfVisible("ft-enter-btn")) return; // Enter Fast Track
+        
+        // 8. 貸款拒絕 (AI 暫不處理複雜貸款，除非強制)
+        if (AILogic.clickIfVisible("no-loan-btn")) return;
+        
+        // 9. 處理股票輸入 (如果卡在股票購買畫面)
+        var shareInput = document.getElementById("share-amt-input");
+        var buyStockBtn = document.getElementById("buy-stock-btn");
+        if (shareInput && AILogic.isVisible(shareInput) && AILogic.isVisible(buyStockBtn)) {
+            // 簡單 AI：不買股票，直接 Done (如果可以) 或買 1 股
+            // 為了避免卡住，我們嘗試點 Done，如果不行就 Pass
+            if (AILogic.isVisibleById("done-btn")) {
+                document.getElementById("done-btn").click();
+            } else {
+                // 必須操作? 買 0 股? 
+                // 嘗試找 Done 
+            }
+        }
+    },
+
+    // 工具：根據 ID 點擊 (如果可見)
+    clickIfVisible: function(id) {
+        var el = document.getElementById(id);
+        if (el && AILogic.isVisible(el)) {
+            console.log("AI clicking: " + id);
+            el.click();
+            return true;
+        }
+        return false;
+    },
+
+    // 工具：檢查元素是否可見 (display != none)
+    isVisible: function(el) {
+        if (!el) return false;
+        return el.style.display !== 'none' && el.offsetParent !== null;
+    },
+    
+    isVisibleById: function(id) {
+        var el = document.getElementById(id);
+        return AILogic.isVisible(el);
+    },
+
+    // 工具：根據按鈕文字尋找 (用於沒有明確 ID 的情況)
+    findButtonByText: function(txt) {
+        var btns = document.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {
+            if (btns[i].innerText.toLowerCase().includes(txt.toLowerCase())) {
+                return btns[i];
+            }
+        }
+        return null;
     }
-}
+};
+
+// 啟動初始化
+AILogic.init();
