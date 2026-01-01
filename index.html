@@ -56,6 +56,7 @@
                     <div id="player-setup-input-container">
                         <div id="player1input" class="player-input" >
                             1: <input type="text" id="player1name" title="Player 1 name" maxlength="16" value="Player 1" />
+							<label style="font-size: 0.8em;"><input type="checkbox" id="player1ai"> AI?</label>
                             <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p1" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
@@ -92,6 +93,7 @@
                         </div>
                         <div id="player2input" class="player-input">
                             2: <input type="text" id="player2name" title="Player 2 name" maxlength="16" value="Player 2" />
+        <label style="font-size: 0.8em;"><input type="checkbox" id="player2ai"> AI?</label>
                             <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p2" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
@@ -127,8 +129,8 @@
                             </div>
                         </div>
                         <div id="player3input" class="player-input">
-                            3: <input type="text" id="player3name" title="Player 3 name" maxlength="16" value="Player 3" />
-                            <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
+        3: <input type="text" id="player3name" title="Player 3 name" value="Player 3">
+        <label style="font-size: 0.8em;"><input type="checkbox" id="player3ai"> AI?</label>                            <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p3" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
                             </label>
@@ -163,8 +165,9 @@
                             </div>
                         </div>
                         <div id="player4input" class="player-input">
-                            4: <input type="text" id="player4name" title="Player 4 name" maxlength="16" value="Player 4"/>
-                            <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
+        4: <input type="text" id="player4name" title="Player 4 name" value="Player 4">
+        <label style="font-size: 0.8em;"><input type="checkbox" id="player4ai"> AI?</label>                          
+		<label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p4" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
                             </label>
@@ -199,7 +202,8 @@
                             </div>
                         </div>
                         <div id="player5input" class="player-input">
-                            5: <input type="text" id="player5name" title="Player 5 name" maxlength="16" value="Player 5" />
+        5: <input type="text" id="player5name" title="Player 5 name" value="Player 5">
+        <label style="font-size: 0.8em;"><input type="checkbox" id="player5ai"> AI?</label>
                             <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p5" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
@@ -235,7 +239,8 @@
                             </div>
                         </div>
                         <div id="player6input" class="player-input">
-                            6: <input type="text" id="player6name" title="Player 6 name" maxlength="16" value="Player 6" />
+        6: <input type="text" id="player6name" title="Player 6 name" value="Player 6">
+        <label style="font-size: 0.8em;"><input type="checkbox" id="player6ai"> AI?</label>
                             <label class="player-options-checkbox" title="Pay 8% of your income for Downsize insurance. Pay an additional 1% for every dependent.">
                                 <input id="po-insurance-p6" type="checkbox">
                                 <span class="player-input-checkmark">Insurance</span>
@@ -1215,6 +1220,7 @@
                 </table>
             </div>
         </div>
+		<script src="js/ai_logic.js"></script>
     </body>
     <!--<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
